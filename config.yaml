@@ -1,0 +1,267 @@
+app:
+  name: South Bay Newsbot
+  timezone: America/Los_Angeles
+  user_agent: "SouthBayNewsbot/0.1 (personal local monitor; contact: local)"
+
+runtime:
+  poll_sleep_seconds: 10
+  process_batch_size: 3
+  cluster_window_hours: 6
+  max_events_for_digest: 20
+  reddit_request_delay_seconds: 15
+
+locations:
+  center:
+    latitude: 37.3382
+    longitude: -121.8863
+  chp_report_radius_miles: 25
+  max_earthquake_distance_km: 250
+  fire_counties:
+    - Santa Clara
+    - Alameda
+    - San Mateo
+    - Santa Cruz
+    - Contra Costa
+    - San Benito
+  cities:
+    - San Jose
+    - Cupertino
+    - Santa Clara
+  roads:
+    - I-280
+    - I-880
+    - CA-87
+    - SR-87
+    - US-101
+  aliases:
+    San Jose:
+      - SJ
+      - Downtown San Jose
+      - South San Jose
+      - North San Jose
+    Santa Clara:
+      - Santana Row
+      - Valley Fair
+      - Great America Parkway
+    Cupertino:
+      - Apple Park
+      - De Anza
+
+topics:
+  high:
+    - police
+    - fire
+    - crash
+    - collision
+    - accident
+    - outage
+    - robbery
+    - shooting
+    - lockdown
+    - evacuation
+    - closure
+    - SigAlert
+    - smoke
+    - earthquake
+    - Oracle
+    - OCI
+    - layoff
+    - WARN
+    - H1B
+    - PERM
+    - USCIS
+    - EB2
+    - EB3
+    - Visa Bulletin
+  noise:
+    - meme
+    - celebrity
+    - sports
+    - rant
+    - opinion
+
+classifier:
+  provider: ollama
+  ollama_model_env: OLLAMA_MODEL
+  ollama_base_url_env: OLLAMA_BASE_URL
+  openai_model_env: OPENAI_MODEL
+  timeout_seconds: 60
+  use_openai_fallback: true
+
+scoring:
+  immediate_min_urgency: 8
+  immediate_min_relevance: 7
+  immediate_min_credibility: 4
+  final_priority_threshold: 5.8
+  digest_priority_threshold: 4.5
+
+notifications:
+  telegram_enabled: true
+  bot_token_env: TELEGRAM_BOT_TOKEN
+  chat_id_env: TELEGRAM_CHAT_ID
+  notify_all_new_raw_items: true
+  notify_raw_item_max_per_fetch: 30
+  notify_on_first_fetch: false
+  rss_max_age_hours: 12
+  daily_digest_time: "21:00"
+  max_immediate_per_hour: 8
+  suppress_duplicate_event_minutes: 180
+  debug_enabled: false
+
+sources:
+  - name: chp_bay_area
+    type: chp_html
+    url: https://m.chp.ca.gov/incident.aspx?DispatchId=GGCC
+    interval_seconds: 60
+    category_hint: traffic
+
+  - name: nws_south_bay_alerts
+    type: nws_alerts
+    url: https://api.weather.gov/alerts/active?point=37.3382,-121.8863
+    interval_seconds: 120
+    category_hint: weather
+
+  - name: usgs_all_hour
+    type: usgs_geojson
+    url: https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_hour.geojson
+    interval_seconds: 60
+    category_hint: earthquake
+    center:
+      latitude: 37.3382
+      longitude: -121.8863
+    max_distance_km: 80.47
+    min_magnitude: 3.0
+    always_include_magnitude: 999
+
+  - name: calfire_active
+    type: calfire_json
+    url: https://incidents.fire.ca.gov/umbraco/api/IncidentApi/List?inactive=false
+    interval_seconds: 300
+    category_hint: fire
+    counties:
+      - Santa Clara
+      - Alameda
+      - San Mateo
+      - Santa Cruz
+      - Contra Costa
+      - San Benito
+
+  - name: visa_bulletin
+    type: html_page
+    url: https://travel.state.gov/content/travel/en/legal/visa-law0/visa-bulletin.html
+    interval_seconds: 21600
+    category_hint: immigration
+
+  - name: ca_warn
+    type: warn_xlsx
+    url: https://edd.ca.gov/siteassets/files/jobs_and_training/warn/warn_report1.xlsx
+    interval_seconds: 21600
+    category_hint: layoff
+
+  - name: reddit_sanjose
+    type: reddit_json
+    url: https://www.reddit.com/r/SanJose/new.json?limit=50
+    interval_seconds: 1800
+    category_hint: local
+
+  - name: reddit_bayarea
+    type: reddit_json
+    url: https://www.reddit.com/r/bayarea/new.json?limit=50
+    interval_seconds: 1800
+    category_hint: local
+
+  - name: reddit_cupertino
+    type: reddit_json
+    url: https://www.reddit.com/r/cupertino/new.json?limit=50
+    interval_seconds: 1800
+    category_hint: local
+
+  - name: reddit_santaclara
+    type: reddit_json
+    url: https://www.reddit.com/r/SantaClara/new.json?limit=50
+    interval_seconds: 1800
+    category_hint: local
+
+  - name: reddit_h1b
+    type: reddit_json
+    url: https://www.reddit.com/r/h1b/new.json?limit=50
+    interval_seconds: 3600
+    category_hint: immigration
+
+  - name: reddit_uscis
+    type: reddit_json
+    url: https://www.reddit.com/r/USCIS/new.json?limit=50
+    interval_seconds: 3600
+    category_hint: immigration
+
+  - name: reddit_layoffs
+    type: reddit_json
+    url: https://www.reddit.com/r/layoffs/new.json?limit=50
+    interval_seconds: 3600
+    category_hint: layoff
+
+  - name: sanjose_spotlight
+    type: rss
+    url: https://sanjosespotlight.com/feed/
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: kqed_news
+    type: rss
+    url: https://ww2.kqed.org/news/feed/
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: kron4
+    type: rss
+    url: https://www.kron4.com/feed/
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: abc7_bay_area
+    type: rss
+    url: https://abc7news.com/feed/
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: nbc_bay_area
+    type: rss
+    url: https://www.nbcbayarea.com/?rss=y
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: cbs_bay_area_local
+    type: rss
+    url: https://www.cbsnews.com/sanfrancisco/latest/rss/local-news
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: sfgate_bay_area
+    type: rss
+    url: https://www.sfgate.com/bayarea/feed/Bay-Area-News-429.php
+    interval_seconds: 600
+    category_hint: local_news
+
+  - name: berkeleyside
+    type: rss
+    url: https://www.berkeleyside.org/feed
+    interval_seconds: 900
+    category_hint: local_news
+
+  - name: oaklandside
+    type: rss
+    url: https://oaklandside.org/feed/
+    interval_seconds: 900
+    category_hint: local_news
+
+  - name: palo_alto_online
+    type: rss
+    url: https://www.paloaltoonline.com/feed/
+    interval_seconds: 900
+    category_hint: local_news
+
+  - name: mountain_view_voice
+    type: rss
+    url: https://www.mv-voice.com/feed/
+    interval_seconds: 900
+    category_hint: local_news
