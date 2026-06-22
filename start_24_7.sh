@@ -13,7 +13,7 @@ if [ ! -f "$NEWSBOT_DIR/.env" ]; then
 fi
 
 if [ ! -x "$NEWSBOT_DIR/.venv/bin/python" ]; then
-  echo "Missing virtualenv. Run: PYTHON_BIN=/Users/chuxuanfu/.local/bin/python3 bash install.sh"
+  echo "Missing virtualenv. Run: bash install.sh"
   exit 1
 fi
 

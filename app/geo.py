@@ -286,7 +286,8 @@ def geocode_cached(
 
 
 def render_map_image(raw_item_id: int, geocoded: dict[str, Any], config: dict[str, Any]) -> str:
-    root = Path(config.get("runtime", {}).get("map_dir", "/Users/chuxuanfu/newsbot/data/maps"))
+    default_map_dir = Path(__file__).resolve().parents[1] / "data" / "maps"
+    root = Path(config.get("runtime", {}).get("map_dir", default_map_dir))
     root.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256(f"{raw_item_id}:{geocoded['latitude']}:{geocoded['longitude']}".encode()).hexdigest()[:12]
     path = root / f"chp_{raw_item_id}_{digest}.png"
