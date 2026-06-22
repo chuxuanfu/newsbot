@@ -62,12 +62,20 @@ This creates:
 - `.venv/` for Python packages
 - `.env` copied from `.env.example`
 - `data/newsbot.sqlite3`
+- `data/maps/`
 - `logs/`
 
 If `python3` is not on your `PATH`, provide it explicitly:
 
 ```bash
 PYTHON_BIN=/absolute/path/to/python3 bash install.sh
+```
+
+If Python is missing entirely, install Python 3.11+ first. On macOS with
+Homebrew:
+
+```bash
+brew install python
 ```
 
 ## 3. Create A Telegram Bot
